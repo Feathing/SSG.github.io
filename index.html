@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Slither.io Skin Generator</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -114,7 +114,7 @@
             border-radius: 4px;
             padding: 8px;
             box-sizing: border-box;
-            color: #000; /* テキストカラーを黒に設定 */
+            color: #000;
             transition: none;
         }
         input[type="number"]:focus {
@@ -127,11 +127,64 @@
             margin-top: 10px;
             font-size: 14px;
         }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin-bottom: 20px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+        .toggle-label span {
+            font-family: 'Roboto Slab', serif;
+            font-size: 20px;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Slither Skin Generator for NTL</h1>
+        <h1>Slither Skin Generator for NTL and Frontier</h1>
         <div class="checkbox-group">
             <label><input type="checkbox" id="allColors" onchange="toggleAllColors()"> Select All Colors</label>
             <label><input type="checkbox" id="red" value="red"> Red</label>
@@ -139,6 +192,14 @@
             <label><input type="checkbox" id="pink" value="pink"> Pink</label>
             <label><input type="checkbox" id="green" value="green"> Green</label>
             <label><input type="checkbox" id="other" value="other"> Other</label>
+        </div>
+        <div class="toggle-label">
+            <span>NTL</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="modTypeToggle" onchange="updateModType()">
+                <span class="slider"></span>
+            </label>
+            <span>Frontier</span>
         </div>
         <label for="length">Enter the length of the random sequence (1-250):</label>
         <input type="number" id="length" name="length" min="1" max="250">
@@ -149,14 +210,89 @@
         </div>
         <p id="statusMessage" class="status-message"></p>
     </div>
-    <script src="script.js"></script>
     <script>
         function toggleAllColors() {
             const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
             const allColorsCheckbox = document.getElementById('allColors');
             checkboxes.forEach(checkbox => {
-                checkbox.checked = allColorsCheckbox.checked;
+                if (checkbox !== allColorsCheckbox) {
+                    checkbox.checked = allColorsCheckbox.checked;
+                }
             });
+        }
+
+        function updateModType() {
+            const modTypeToggle = document.getElementById('modTypeToggle');
+            modType = modTypeToggle.checked ? 'Frontier' : 'NTL';
+        }
+
+        function generateRandomSequence() {
+            const length = document.getElementById('length').value;
+            const modTypeToggle = document.getElementById('modTypeToggle');
+            const modType = modTypeToggle.checked ? 'Frontier' : 'NTL';
+
+            const charsMap = {
+                NTL: {
+                    red: '125wygnbm,',
+                    blue: '40ertudjklxc',
+                    pink: '8-qazxm',
+                    green: '9ophv',
+                    other: '367isf'
+                },
+                Frontier: {
+                    red: 'rsvic4m567',
+                    blue: 'u-jklnaefg12',
+                    pink: 'y/h8016',
+                    green: 'zpqd3',
+                    other: 'twxo9b'
+                }
+            };
+
+            let chars = '';
+
+            if (document.getElementById('allColors').checked) {
+                chars += Object.values(charsMap[modType]).join('');
+            } else {
+                if (document.getElementById('red').checked) chars += charsMap[modType].red;
+                if (document.getElementById('blue').checked) chars += charsMap[modType].blue;
+                if (document.getElementById('pink').checked) chars += charsMap[modType].pink;
+                if (document.getElementById('green').checked) chars += charsMap[modType].green;
+                if (document.getElementById('other').checked) chars += charsMap[modType].other;
+            }
+
+            if (!chars) {
+                setStatusMessage('Please select at least one color category.', 'error');
+                return;
+            }
+
+            if (length < 1 || length > 250) {
+                setStatusMessage('Please enter a length between 1 and 250.', 'error');
+                return;
+            }
+
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+
+            document.getElementById('result').innerText = result;
+            document.getElementById('copyButton').style.display = 'inline-block';
+            setStatusMessage('');
+        }
+
+        function copyToClipboard() {
+            const resultText = document.getElementById('result').innerText;
+            navigator.clipboard.writeText(resultText).then(() => {
+                setStatusMessage('Copied to clipboard', 'success');
+            }).catch(err => {
+                setStatusMessage('Failed to copy: ' + err, 'error');
+            });
+        }
+
+        function setStatusMessage(message, type = 'info') {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = type === 'error' ? 'status-message error' : 'status-message success';
         }
     </script>
 </body>
