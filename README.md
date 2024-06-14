@@ -1,1 +1,1 @@
-# Slither Skin Generator for NTL
+# Slither Skin Generator
